@@ -858,28 +858,57 @@
         // 全局變量
         let eventData = [];
         
-        // 地點顏色配置 - 使用 index(2).html 的配置
+        // 地點顏色配置 - 為亮色和暗色主題分別定義顏色
         const locationConfig = {
             "101鐘樓": {
-                color: "#4dabf7",
-                bgColor: "#e7f5ff",
-                borderColor: "#4dabf7",
-                hiddenColor: "#f0f8ff",
-                hiddenBorder: "#a5d8ff"
+                // 亮色主題顏色
+                light: {
+                    color: "#4dabf7",
+                    bgColor: "#e7f5ff",
+                    borderColor: "#4dabf7",
+                    hiddenColor: "#f0f8ff",
+                    hiddenBorder: "#a5d8ff"
+                },
+                // 暗色主題顏色
+                dark: {
+                    color: "#4dabf7",
+                    bgColor: "#1a365d",
+                    borderColor: "#4dabf7",
+                    hiddenColor: "#0f2b4d",
+                    hiddenBorder: "#a5d8ff"
+                }
             },
             "歪常研究院": {
-                color: "#da77f2",
-                bgColor: "#f8f0fc",
-                borderColor: "#da77f2",
-                hiddenColor: "#fdf2ff",
-                hiddenBorder: "#e599f7"
+                light: {
+                    color: "#da77f2",
+                    bgColor: "#f8f0fc",
+                    borderColor: "#da77f2",
+                    hiddenColor: "#fdf2ff",
+                    hiddenBorder: "#e599f7"
+                },
+                dark: {
+                    color: "#da77f2",
+                    bgColor: "#3a1a4a",
+                    borderColor: "#da77f2",
+                    hiddenColor: "#2a0f3a",
+                    hiddenBorder: "#e599f7"
+                }
             },
             "小怪寶家長會": {
-                color: "#3a8c4a",
-                bgColor: "#e6f7e9",
-                borderColor: "#3a8c4a",
-                hiddenColor: "#f0f9f2",
-                hiddenBorder: "#a3d9b1"
+                light: {
+                    color: "#3a8c4a",
+                    bgColor: "#e6f7e9",
+                    borderColor: "#3a8c4a",
+                    hiddenColor: "#f0f9f2",
+                    hiddenBorder: "#a3d9b1"
+                },
+                dark: {
+                    color: "#3a8c4a",
+                    bgColor: "#1a3a1a",
+                    borderColor: "#3a8c4a",
+                    hiddenColor: "#0f2a0f",
+                    hiddenBorder: "#a3d9b1"
+                }
             }
         };
 
@@ -1292,7 +1321,7 @@
             modal.classList.add('active');
         }
         
-        // 生成篩選按鈕 - 改為與 index(2).html 一致
+        // 生成篩選按鈕 - 修正暗色主題問題
         function generateFilterButtons() {
             const filtersContainer = document.getElementById('filters');
             
@@ -1302,16 +1331,17 @@
             
             Object.keys(locationConfig).forEach(location => {
                 const isHidden = hiddenLocations.has(location);
-                const config = locationConfig[location];
+                const isDarkTheme = document.body.classList.contains('dark-theme');
+                const config = isDarkTheme ? locationConfig[location].dark : locationConfig[location].light;
                 
                 const button = document.createElement('button');
                 button.className = `filter-btn ${isHidden ? 'hidden' : ''}`;
                 button.textContent = location;
                 
-                // 使用 index(2).html 的樣式
+                // 使用對應主題的顏色
                 button.style.backgroundColor = isHidden ? config.hiddenColor : config.bgColor;
-                button.style.color = isHidden ? '#adb5bd' : config.color;
-                button.style.border = `2px solid ${isHidden ? config.hiddenBorder : config.borderColor}`;
+                button.style.color = config.color; // 文字顏色保持主題顏色
+                button.style.border = `2px solid ${config.borderColor}`;
                 
                 button.addEventListener('click', () => toggleLocation(location));
                 
@@ -1338,19 +1368,36 @@
             const statusText = statusBar.querySelector('div:first-child');
             const hiddenCount = hiddenLocations.size;
             
+            const isDarkTheme = document.body.classList.contains('dark-theme');
+            
             if (hiddenCount === 0) {
                 statusText.textContent = "顯示所有地點的活動";
-                statusBar.style.backgroundColor = "#e7f5ff";
-                statusBar.style.color = "#1864ab";
+                if (isDarkTheme) {
+                    statusBar.style.backgroundColor = "#1a365d";
+                    statusBar.style.color = "#90cdf4";
+                } else {
+                    statusBar.style.backgroundColor = "#e7f5ff";
+                    statusBar.style.color = "#1864ab";
+                }
             } else if (hiddenCount === 3) {
                 statusText.textContent = "所有地點活動皆已隱藏";
-                statusBar.style.backgroundColor = "#f8f9fa";
-                statusBar.style.color = "#6c757d";
+                if (isDarkTheme) {
+                    statusBar.style.backgroundColor = "#2c2c2c";
+                    statusBar.style.color = "#adb5bd";
+                } else {
+                    statusBar.style.backgroundColor = "#f8f9fa";
+                    statusBar.style.color = "#6c757d";
+                }
             } else {
                 const hiddenList = Array.from(hiddenLocations).join('、');
                 statusText.textContent = `已隱藏：${hiddenList}`;
-                statusBar.style.backgroundColor = "#fff3cd";
-                statusBar.style.color = "#856404";
+                if (isDarkTheme) {
+                    statusBar.style.backgroundColor = "#332d1a";
+                    statusBar.style.color = "#ffd54f";
+                } else {
+                    statusBar.style.backgroundColor = "#fff3cd";
+                    statusBar.style.color = "#856404";
+                }
             }
         }
         
@@ -1420,32 +1467,17 @@
                         const eventDiv = document.createElement('div');
                         eventDiv.className = `event ${isHidden ? 'hidden' : ''}`;
                         
-                        const config = locationConfig[event.location];
-                        
-                        // 對於暗色主題，使用特殊的顏色處理
                         const isDarkTheme = document.body.classList.contains('dark-theme');
+                        const config = isDarkTheme ? locationConfig[event.location].dark : locationConfig[event.location].light;
                         
+                        // 使用對應主題的顏色
+                        eventDiv.style.backgroundColor = isHidden ? config.hiddenColor : config.bgColor;
+                        eventDiv.style.borderLeftColor = config.borderColor;
+                        
+                        // 文字顏色處理
                         if (isDarkTheme) {
-                            // 暗色主題下使用與亮色主題相似的顏色方案，但調整明度
-                            if (isHidden) {
-                                // 隱藏的活動在暗色主題下使用更暗的顏色
-                                eventDiv.style.backgroundColor = config.hiddenColor.replace('#', '#1a').replace(/\b[0-9a-f]{2}\b/g, match => {
-                                    const val = parseInt(match, 16);
-                                    return Math.floor(val * 0.3).toString(16).padStart(2, '0');
-                                });
-                            } else {
-                                // 顯示的活動使用原背景色但變暗
-                                eventDiv.style.backgroundColor = config.bgColor.replace('#', '#2a').replace(/\b[0-9a-f]{2}\b/g, match => {
-                                    const val = parseInt(match, 16);
-                                    return Math.floor(val * 0.5).toString(16).padStart(2, '0');
-                                });
-                            }
-                            eventDiv.style.borderLeftColor = config.borderColor;
                             eventDiv.style.color = isHidden ? '#777' : '#fff';
                         } else {
-                            // 亮色主題使用 index(2).html 的樣式
-                            eventDiv.style.backgroundColor = isHidden ? config.hiddenColor : config.bgColor;
-                            eventDiv.style.borderLeftColor = isHidden ? config.hiddenBorder : config.borderColor;
                             eventDiv.style.color = isHidden ? '#adb5bd' : '#333';
                         }
                         
